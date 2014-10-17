@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>B29F79BD-FAC8-49CF-BC06-4F0C72B06623</string>
+	<key>IDESourceControlProjectName</key>
+	<string>CCPVoipDemo</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>372EDA17-984F-40EE-9EFB-14D720695C91</key>
+		<string>http://192.168.108.71/iosdb/yfs/sdk/ios</string>
+		<key>37DE32F9-EE16-4401-9510-059BEA3291C5</key>
+		<string>http://192.168.108.71/iosdb/yfs/wiki</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>ios/trunk/CCPVoipDemo/CCPVoipDemo.xcodeproj/project.xcworkspace</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>372EDA17-984F-40EE-9EFB-14D720695C91</key>
+		<string>../../../../../../IOSSDK</string>
+		<key>37DE32F9-EE16-4401-9510-059BEA3291C5</key>
+		<string>../../../../..</string>
+	</dict>
+	<key>IDESourceControlProjectRepositoryRootDictionary</key>
+	<dict>
+		<key>372EDA17-984F-40EE-9EFB-14D720695C91</key>
+		<string>http://192.168.108.71/iosdb</string>
+		<key>37DE32F9-EE16-4401-9510-059BEA3291C5</key>
+		<string>http://192.168.108.71/iosdb</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>http://192.168.108.71/hxyf2db/iphone/haomawang/xmessenger/doc/%E4%BA%91%E9%80%9A%E8%AE%AFDEMO/ios/trunk/CCPVoipDemo/CCPVoipDemo.xcodeproj</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>110</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>37DE32F9-EE16-4401-9510-059BEA3291C5</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.subversion</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>37DE32F9-EE16-4401-9510-059BEA3291C5</string>
+			<key>IDESourceControlWCCName</key>
+			<string>云通讯DEMO</string>
+		</dict>
+		<dict>
+			<key>IDESourceControlRepositoryBranchesRelativeLocationKey</key>
+			<string>yfs/sdk/ios/branches</string>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.subversion</string>
+			<key>IDESourceControlRepositoryTrunkRelativeLocationKey</key>
+			<string>yfs/sdk/ios/trunk</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>372EDA17-984F-40EE-9EFB-14D720695C91</string>
+			<key>IDESourceControlWCCName</key>
+			<string>IOSSDK</string>
+		</dict>
+	</array>
+</dict>
+</plist>

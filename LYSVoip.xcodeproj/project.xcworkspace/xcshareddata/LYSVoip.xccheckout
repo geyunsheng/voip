@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>1A13F513-499E-43E9-AC15-676343AAD53B</string>
+	<key>IDESourceControlProjectName</key>
+	<string>LYSVoip</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>9E296A41-843E-4EA6-BE69-16287E1CD5AE</key>
+		<string>http://git.cloudeven.com/atjavateams/rgsvoip_ios.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>LYSVoip.xcodeproj/project.xcworkspace</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>9E296A41-843E-4EA6-BE69-16287E1CD5AE</key>
+		<string>../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>http://git.cloudeven.com/atjavateams/rgsvoip_ios.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>110</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>9E296A41-843E-4EA6-BE69-16287E1CD5AE</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>9E296A41-843E-4EA6-BE69-16287E1CD5AE</string>
+			<key>IDESourceControlWCCName</key>
+			<string>rgsvoip_ios</string>
+		</dict>
+	</array>
+</dict>
+</plist>

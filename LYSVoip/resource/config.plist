@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>main_account</key>
+	<string>8a48b55148406d40014843761fce00d2</string>
+	<key>main_token</key>
+	<string>1b172fb157064f6fb899a2e85a74d5ef</string>
+	<key>app_id</key>
+	<string>8a48b55148406d4001484387327c00db</string>
+	<key>serverip</key>
+	<string>app.cloopen.com</string>
+	<key>serverport</key>
+	<string>8883</string>
+</dict>
+</plist>
