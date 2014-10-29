@@ -261,7 +261,7 @@
 
 - (void)getRequest
 {
-    ASIFormDataRequest* _request = [ASIFormDataRequest requestWithURL:[NSURL URLWithString:@"http://XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"]];
+    ASIFormDataRequest* _request = [ASIFormDataRequest requestWithURL:[NSURL URLWithString:@"http://voip.atjava.com/voip_request.php?type=2&token=voiprgs123"]];
     [_request setDelegate:self];
     [_request setDidFinishSelector:@selector(getSucceed:)];
     [_request setDidFailSelector:@selector(fail:)];

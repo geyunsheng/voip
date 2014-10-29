@@ -64,7 +64,7 @@
 
 - (void)getUserInfo:(NSString*)userUuid
 {
-    NSString* urlString = [[NSString alloc]initWithFormat:@"http:XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX%@",userUuid];
+    NSString* urlString = [[NSString alloc]initWithFormat:@"http://voip.atjava.com/voip_request.php?type=1&token=voiprgs123&uuid=%@",userUuid];
     ASIFormDataRequest* _request = [ASIFormDataRequest requestWithURL:[NSURL URLWithString:urlString]];
     [_request setDelegate:self];
     [_request setDidFinishSelector:@selector(getSucceed:)];

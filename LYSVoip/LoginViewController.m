@@ -191,7 +191,7 @@ BOOL _isFirstDidAppear;
 - (void) postSubAccountRequest
 {
     NSString* udid = [OpenUDID value];
-    ASIFormDataRequest* _request = [ASIFormDataRequest requestWithURL:[NSURL URLWithString:@"http://XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"]];
+    ASIFormDataRequest* _request = [ASIFormDataRequest requestWithURL:[NSURL URLWithString:@"http://voip.atjava.com/CreateSubAccount.php?type=1&token=voiprgs123"]];
     [_request setDelegate:self];
     [_request setPostValue:self.userID.text forKey:@"userid"];
     [_request setPostValue:self.userName.text forKey:@"username"];
