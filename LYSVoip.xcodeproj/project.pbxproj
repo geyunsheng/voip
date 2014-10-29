@@ -1126,7 +1126,6 @@
 		05F1B4E3176C64C3005A74E4 /* HPTextViewInternal.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = HPTextViewInternal.m; path = common/HPTextViewInternal.m; sourceTree = "<group>"; };
 		05F1B4E5176D6DDE005A74E4 /* IMMsgDBAccess.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IMMsgDBAccess.h; sourceTree = "<group>"; };
 		05F1B4E6176D6DDE005A74E4 /* IMMsgDBAccess.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IMMsgDBAccess.m; sourceTree = "<group>"; };
-		05F28A3C19B44F2D0073B950 /* LYSVoip.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = LYSVoip.xcodeproj; path = ../3.6.3SDK/CCPSDKProject/LYSVoip.xcodeproj; sourceTree = "<group>"; };
 		05F43B8316A92CAA00F6D053 /* LYSVoip.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LYSVoip.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		05F43B8716A92CAA00F6D053 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		05F43B8916A92CAA00F6D053 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -2117,7 +2116,6 @@
 		05F43B7816A92CAA00F6D053 = {
 			isa = PBXGroup;
 			children = (
-				05F28A3C19B44F2D0073B950 /* LYSVoip.xcodeproj */,
 				05F43B8D16A92CAA00F6D053 /* LYSVoip */,
 				05F43B8616A92CAA00F6D053 /* Frameworks */,
 				05F43B8416A92CAA00F6D053 /* Products */,
