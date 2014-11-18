@@ -10,7 +10,6 @@
 #import "ASIFormDataRequest.h"
 #import "DemoListViewController.h"
 #import "TFHpple.h"
-#import "UserBasicInfo.h"
 #import "OpenUDID.h"
 #import "SYAppStart.h"
 

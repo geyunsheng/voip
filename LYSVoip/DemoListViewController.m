@@ -25,17 +25,17 @@
 #import "VideoConfIntroduction.h"
 #import "ASIFormDataRequest.h"
 #import "TFHpple.h"
+#import "BalanceViewController.h"
+
 #define TAG_DEMO_GOTO_VOIP          100
 #define TAG_DEMO_GOTO_INTERCOME     101
 #define TAG_DEMO_GOTO_CHAT_ROOM     102
-
-
 #define TAG_DEMO_GOTO_VIDEO         103
 #define TAG_DEMO_GOTO_VideoConf     104
-
-
 #define TAG_DEMO_GOTO_XX_Message    105
-#define TAG_DEMO_GOTO_SETTING       106
+#define TAG_DEMO_GOTO_BALANCE       106
+#define TAG_DEMO_GOTO_RECHARGE      107
+#define TAG_DEMO_GOTO_SETTING       108
 
 
 @interface DemoListViewController ()
@@ -124,16 +124,8 @@
     
     [self.view addSubview:topView];
     [topView release];
-/*
 
-    CGRect frame = CGRectMake(0, 80.0f+value, 320, [UIScreen mainScreen].applicationFrame.size.height);
-    UIScrollView* scrollView = [[UIScrollView alloc] initWithFrame:frame];
-    [self.view addSubview:scrollView];
-    [scrollView setContentSize:CGSizeMake(320, 1000)];
-    scrollView.backgroundColor = [UIColor clearColor];
-    [scrollView release];
-*/
-    for (int i=0;i<7;i++)
+    for (int i=0;i<9;i++)
     {
         int x = 0;
         int y = 20+80.0f+value;
@@ -149,10 +141,6 @@
         else
         {
             x = 217;
-        }
-        if (i == 6)
-        {
-            x = 114;
         }
             
         y += (i/3) * 114;
@@ -209,6 +197,24 @@
         [button setImage:[UIImage imageNamed:@"new184.png"] forState:(UIControlStateNormal)];
         [button setImage:[UIImage imageNamed:@"new184_on.png"] forState:(UIControlStateSelected)];
     }
+    else if (button.tag == TAG_DEMO_GOTO_VideoConf)
+    {
+        //视频会议
+        [button setImage:[UIImage imageNamed:@"new202.png"] forState:(UIControlStateNormal)];
+        [button setImage:[UIImage imageNamed:@"new202_on.png"] forState:(UIControlStateSelected)];
+    }
+    else if (button.tag == TAG_DEMO_GOTO_BALANCE)
+    {
+        //余额
+        [button setImage:[UIImage imageNamed:@"new197.png"] forState:(UIControlStateNormal)];
+        [button setImage:[UIImage imageNamed:@"new197_on.png"] forState:(UIControlStateSelected)];
+    }
+    else if (button.tag == TAG_DEMO_GOTO_RECHARGE)
+    {
+        //充值
+        [button setImage:[UIImage imageNamed:@"new199.png"] forState:(UIControlStateNormal)];
+        [button setImage:[UIImage imageNamed:@"new199_on.png"] forState:(UIControlStateSelected)];
+    }
 //    else if (button.tag == TAG_DEMO_GOTO_MARKET_CALL)
 //    {
 //        //进入外呼通知演示
@@ -227,12 +233,6 @@
 //        [button setImage:[UIImage imageNamed:@"new199.png"] forState:(UIControlStateNormal)];
 //        [button setImage:[UIImage imageNamed:@"new199_on.png"] forState:(UIControlStateSelected)];
 //    }
-    else if (button.tag == TAG_DEMO_GOTO_VideoConf)
-    {
-        //视频会议
-        [button setImage:[UIImage imageNamed:@"new202.png"] forState:(UIControlStateNormal)];
-        [button setImage:[UIImage imageNamed:@"new202_on.png"] forState:(UIControlStateSelected)];
-    }
 //    else if (button.tag == TAG_DEMO_GOTO_Contacts)
 //    {
 //        //通讯录
@@ -464,6 +464,26 @@
         [self.navigationController pushViewController:view animated:YES];
         [view release];
     }
+    else if (button.tag == TAG_DEMO_GOTO_VideoConf)
+    {
+        VideoConfIntroduction* view = [[VideoConfIntroduction alloc] init];
+        view.backView = self;
+        [self.navigationController pushViewController:view animated:YES];
+        [view release];
+    }
+    else if (button.tag == TAG_DEMO_GOTO_BALANCE)
+    {
+        BalanceViewController *view = [[BalanceViewController alloc]init];
+        view.userBasic = self.userBasic;
+        [self.navigationController pushViewController:view animated:YES];
+        [view release];
+    }
+    else if (button.tag == TAG_DEMO_GOTO_RECHARGE)
+    {
+        UIAlertView* alert = [[UIAlertView alloc]initWithTitle:nil message:@"待开发" delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil, nil];
+        [alert show];
+        [alert release];
+    }
 //    else if (button.tag == TAG_DEMO_GOTO_MARKET_CALL)
 //    {
 //        //进入外呼通知演示
@@ -485,13 +505,6 @@
 //        [self.navigationController pushViewController:view animated:YES];
 //        [view release];
 //    }
-    else if (button.tag == TAG_DEMO_GOTO_VideoConf)
-    {
-        VideoConfIntroduction* view = [[VideoConfIntroduction alloc] init];
-        view.backView = self;
-        [self.navigationController pushViewController:view animated:YES];
-        [view release];
-    }
 //    else if (button.tag == TAG_DEMO_GOTO_Contacts)
 //    {
 //        if ([self isContactsAccessGranted])

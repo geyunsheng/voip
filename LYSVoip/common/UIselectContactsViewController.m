@@ -434,9 +434,9 @@
     else
         self.title = @"选择联系人";
     
-    UIBarButtonItem *btnGetContacts=[[UIBarButtonItem alloc] initWithCustomView:[CommonTools navigationItemBtnInitWithTitle:@"添加" target:self action:@selector(addMember)]];
-    self.navigationItem.rightBarButtonItem = btnGetContacts;
-    [btnGetContacts release];
+//    UIBarButtonItem *btnGetContacts=[[UIBarButtonItem alloc] initWithCustomView:[CommonTools navigationItemBtnInitWithTitle:@"添加" target:self action:@selector(addMember)]];
+//    self.navigationItem.rightBarButtonItem = btnGetContacts;
+//    [btnGetContacts release];
     
     self.view.backgroundColor = VIEW_BACKGROUND_COLOR_WHITE;
     
@@ -529,56 +529,56 @@
     }
 }
 
--(void)addMember
-{
-    if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 7)
-    {
-        CustomeAlertView *customeAlertView = [[CustomeAlertView alloc]init];
-        customeAlertView.delegate = self;
-        
-        UILabel *titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(40.0f, 15.0f, 180.0f, 25.0f)];
-        titleLabel.backgroundColor = [UIColor clearColor];
-        titleLabel.textAlignment = UITextAlignmentCenter;
-        titleLabel.textColor = [UIColor blackColor];
-        titleLabel.font = [UIFont systemFontOfSize:14.0f];
-        titleLabel.text = @"请输入要添加的VoIP号码";
-        [customeAlertView.myView addSubview:titleLabel];
-        [titleLabel release];
-        
-        utextfield = [[UITextField alloc] initWithFrame:CGRectMake(10.0, 60.0, 240.0, 25.0)];
-        utextfield.placeholder = @"请输入号码";
-        [utextfield setBackgroundColor:[UIColor whiteColor]];
-        utextfield.delegate = self;
-        utextfield.keyboardType =UIKeyboardTypePhonePad;
-        utextfield.borderStyle = UITextBorderStyleRoundedRect;
-        [customeAlertView.myView addSubview:utextfield];
-        [utextfield release];
-        
-        CGRect frame = customeAlertView.myView.frame;
-        frame.origin.y -= 60;
-        frame.size.height -= 40;
-        [customeAlertView setViewFrame:frame];
-        
-        
-        [customeAlertView show];
-        [utextfield becomeFirstResponder];
-    }
-    else
-    {
-        UIAlertView *alertview = [[UIAlertView alloc] initWithTitle:@"请输入要添加的VoIP号码" message:@"   \0 \n \n" delegate:self cancelButtonTitle:@"取消" otherButtonTitles:@"确定", nil];
-        utextfield = [[UITextField alloc] initWithFrame:CGRectMake(22.0, 60.0, 240.0, 25.0)];
-        utextfield.placeholder = @"请输入号码";
-        [utextfield setBackgroundColor:[UIColor whiteColor]];
-        utextfield.delegate = self;
-        utextfield.keyboardType =UIKeyboardTypePhonePad;
-        utextfield.borderStyle = UITextBorderStyleRoundedRect;
-        [alertview addSubview:utextfield];
-        [alertview show];
-        [alertview release];
-        [utextfield becomeFirstResponder];
-        [utextfield release];
-    }
-}
+//-(void)addMember
+//{
+//    if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 7)
+//    {
+//        CustomeAlertView *customeAlertView = [[CustomeAlertView alloc]init];
+//        customeAlertView.delegate = self;
+//        
+//        UILabel *titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(40.0f, 15.0f, 180.0f, 25.0f)];
+//        titleLabel.backgroundColor = [UIColor clearColor];
+//        titleLabel.textAlignment = UITextAlignmentCenter;
+//        titleLabel.textColor = [UIColor blackColor];
+//        titleLabel.font = [UIFont systemFontOfSize:14.0f];
+//        titleLabel.text = @"请输入要添加的VoIP号码";
+//        [customeAlertView.myView addSubview:titleLabel];
+//        [titleLabel release];
+//        
+//        utextfield = [[UITextField alloc] initWithFrame:CGRectMake(10.0, 60.0, 240.0, 25.0)];
+//        utextfield.placeholder = @"请输入号码";
+//        [utextfield setBackgroundColor:[UIColor whiteColor]];
+//        utextfield.delegate = self;
+//        utextfield.keyboardType =UIKeyboardTypePhonePad;
+//        utextfield.borderStyle = UITextBorderStyleRoundedRect;
+//        [customeAlertView.myView addSubview:utextfield];
+//        [utextfield release];
+//        
+//        CGRect frame = customeAlertView.myView.frame;
+//        frame.origin.y -= 60;
+//        frame.size.height -= 40;
+//        [customeAlertView setViewFrame:frame];
+//        
+//        
+//        [customeAlertView show];
+//        [utextfield becomeFirstResponder];
+//    }
+//    else
+//    {
+//        UIAlertView *alertview = [[UIAlertView alloc] initWithTitle:@"请输入要添加的VoIP号码" message:@"   \0 \n \n" delegate:self cancelButtonTitle:@"取消" otherButtonTitles:@"确定", nil];
+//        utextfield = [[UITextField alloc] initWithFrame:CGRectMake(22.0, 60.0, 240.0, 25.0)];
+//        utextfield.placeholder = @"请输入号码";
+//        [utextfield setBackgroundColor:[UIColor whiteColor]];
+//        utextfield.delegate = self;
+//        utextfield.keyboardType =UIKeyboardTypePhonePad;
+//        utextfield.borderStyle = UITextBorderStyleRoundedRect;
+//        [alertview addSubview:utextfield];
+//        [alertview show];
+//        [alertview release];
+//        [utextfield becomeFirstResponder];
+//        [utextfield release];
+//    }
+//}
 
 -(void)viewWillAppear:(BOOL)animated
 {

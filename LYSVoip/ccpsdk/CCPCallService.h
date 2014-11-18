@@ -61,7 +61,10 @@ typedef enum  {
     Codec_PCMU,
     Codec_PCMA,
     Codec_VP8,
-    Codec_H264
+    Codec_H264,
+    Codec_SILK8K,
+    Codec_SILK12K,
+    Codec_SILK16K
 } Codec;
 
 typedef enum
@@ -75,13 +78,13 @@ typedef enum
 @interface CCPCallService : NSObject
 
 #pragma mark - 初始化函数
-//初始化呼叫(初始化和注册一起)
-- (CCPCallService *)initWithDelegate:(id)delegate;
++ (CCPCallService *)sharedInstance;
+
 //设置代理方法
 - (void)setDelegate:(id)delegate;
 
 //登录
-- (NSInteger)connectToCCP:(NSString *)proxy_addr onPort:(NSInteger)proxy_port withAccount:(NSString *)accountStr withPsw:(NSString *)passwordStr withAccountSid:(NSString *)accountSid withAuthToken:(NSString *)authToken;
+- (NSInteger)connectToCCP:(NSString *)ccpAddr onPort:(NSInteger)ccpPort withAccount:(NSString *)voip withPsw:(NSString *)password withAccountSid:(NSString *)subAccount withAuthToken:(NSString *)subAuthToken;
 //注销
 -(NSInteger)disConnectToCCP;
 #pragma mark - 呼叫控制函数
@@ -113,7 +116,7 @@ typedef enum
  * @param callid 电话id
  * @param reason 预留参数,挂断原因值，可以传入大于1000的值，通话对方会在onMakeCallFailed收到该值
  */
-- (NSInteger)releaseCall:(NSString *)digid andReason:(NSInteger) reason;
+- (NSInteger)releaseCall:(NSString *)callid andReason:(NSInteger) reason;
 
 /**
  * 接听电话
@@ -129,19 +132,6 @@ typedef enum
  * V2.1
  */
 - (NSInteger)acceptCall:(NSString*)callid withType:(NSInteger)callType;
-
-/**
- * 开始通话录音
- * @param callid 电话id
- * @param filename 录音文件名，保存为wav格式
- */
-- (NSInteger) startRecordVoiceCallWithCallid:(NSString*) callid andFilename:(NSString*) filename;
-
-/**
- * 停止通话录音
- * @param callid 电话id
- */
-- (NSInteger) stopRecordVoiceCallWithCallid:(NSString*) callid;
 
 /**
  * 拒绝呼叫(挂断一样,当被呼叫的时候被呼叫方的挂断状态)
@@ -200,14 +190,15 @@ typedef enum
  * 获取呼叫的媒体类型
  * @return 0音频，1视频
  */
-- (NSInteger)getCallMediaType:(NSString*)digid;
+- (NSInteger)getCallMediaType:(NSString*)callid;
 
-//更新已存在呼叫的媒体类型
-- (NSInteger)updateCallMedia:(NSString*)callid withType:(NSInteger)callType;
+//请求切换音视频
+- (NSInteger)requestSwitchCall:(NSString*)callid toMediaType:(NSInteger)callType;
 
-//回复对方的更新请求
+//回复对方的切换音视频请求
 //1 同意  0 拒绝
-- (NSInteger)answerCallMediaUpdate:(NSString*)callid withAction:(NSInteger)action;
+- (NSInteger)responseSwitchCallMediaType:(NSString*)callid withAction:(NSInteger)action;
+
 /**
  * 获取当前状态
  * @return 状态值
@@ -226,30 +217,31 @@ typedef enum
 
 /**
  * 静音设置
- * @param on false:正常 true:静音
+ * @param on NO:正常 YES:静音
  */
 - (NSInteger)setMute:(BOOL)on;
 
 /**
  * 获取当前静音状态
- * @return false:正常 true:静音
+ * @return NO:正常 YES:静音
  */
-- (NSInteger)getMuteStatus;
+- (BOOL)getMuteStatus;
 
 /**
  * 获取当前免提状态
- * @return false:关闭 true:打开
+ * @return NO:关闭 YES:打开
  */
-- (NSInteger)getLoudsSpeakerStatus;
+- (BOOL)getLoudsSpeakerStatus;
 
 /**
  * 免提设置
- * @param enable false:关闭 true:打开
+ * @param enable NO:关闭 YES:打开
  */
 - (NSInteger)enableLoudsSpeaker:(BOOL)enable; 
 
 //重置音频设备,应用挂起时调用无效，切换前台后马上调用容易失败，因为设备此时还未初始化完毕，如果想要启动后调用，可以在切换到前台后延时调用。
 - (NSInteger)resetAudio:(BOOL)flag;
+
 /**
  * 设置电话
  * @param phoneNumber 电话号
@@ -270,7 +262,7 @@ typedef enum
 - (NSInteger)setVideoView:(UIView*)view andLocalView:(UIView*)localView;
 
 //发送本端旋转的角度，如果传递的图像在对端显示是颠倒的则传入负值
-- (void)notifyTo:(NSString *)receiver AndVideoRotate:(NSInteger)degree;
+- (void)notifyTo:(NSString *)receiver andVideoRotate:(NSInteger)degree;
 /**
  * 获取摄像设备信息
  * @return 摄像设备信息数组
@@ -289,9 +281,16 @@ typedef enum
 /**
  * 设置支持的编解码方式，默认全部都支持
  * @param codec 编解码类型
- * @param enabled 0:不支持 1:支持
+ * @param enabled NO:不支持 YES:支持
  */
 -(void)setCodecEnabledWithCodec:(Codec) codec andEnabled:(BOOL) enabled;
+
+/**
+ * 获取编解码方式是否支持
+ * @param codec 编解码类型
+ * @return NO:不支持 YES:支持
+ */
+-(BOOL)getCondecEnabelWithCodec:(Codec) codec;
 
 //设置客户端标示
 - (void)setUserAgent:(NSString *)agent;
@@ -299,11 +298,18 @@ typedef enum
 /**
 * 设置音频处理的开关,在呼叫前调用
 * @param type  音频处理类型. enum AUDIO_TYPE { AUDIO_AGC, AUDIO_EC, AUDIO_NS };
-* @param enabled AGC默认关闭; EC和NS默认开启.
+* @param enabled YES：开启，NO：关闭；AGC默认关闭; EC和NS默认开启.
 * @param mode: 各自对应的模式: AUDIO_AgcMode、AUDIO_EcMode、AUDIO_NsMode.
 * @return  成功 0 失败 -1
 */
 -(NSInteger)setAudioConfigEnabledWithType:(EAudioType) type andEnabled:(BOOL) enabled andMode:(NSInteger) mode;
+
+/**
+ * 获取音频处理的开关
+ * @param type  音频处理类型. enum AUDIO_TYPE { AUDIO_AGC, AUDIO_EC, AUDIO_NS };
+ * @return  成功：音频属性结构 失败：nil
+ */
+-(AudioConfig*)getAudioConfigEnabelWithType:(EAudioType) type;
 
 /**
  * 设置视频通话码率
@@ -311,6 +317,12 @@ typedef enum
  */
 -(void)setVideoBitRates:(NSInteger)bitrates;
 
+/**
+ * 设置silk码流
+ * @param rate 码流（5000~20000）
+ * @return 0：成功   -1：失败
+ */
+-(NSInteger)setSilkRate:(NSInteger)rate;
 
 /**
 * 保存Rtp数据到文件，只能在通话过程中调用，如果没有调用stopRtpDump，通话结束后底层会自动调用
@@ -333,32 +345,40 @@ typedef enum
 
 /**
  * 返回底层库版本信息
- * @ret  返回版本信息
+ * @return  返回版本信息
  */
 -(NSString*)getLIBVersion;
 
 /**
- * 返回SDK版本信息
- * @ret  返回版本信息
+ * SDK版本信息
+ * @return  返回版本信息
  */
 - (NSString*)getSDKVersion;
 
-//获取SDK打包时间
-- (NSString*)getSDKDate;
 /**
- *统计通话质量
-  @ret  返回丢包率等通话质量信息对象
+ * SDK打包时间
+ * @return  返回打包时间
+ */
+- (NSString*)getSDKDate;
+
+/**
+ * 统计通话质量
+ * @return  返回丢包率等通话质量信息对象
  */
 -(StatisticsInfo*)getCallStatistics;
 
 /**
- *获取通话的网络流量信息
+ * 获取通话的网络流量信息
  * @param   callid :  会话ID,会议类传入房间号
-   @ret  返回网络流量信息对象
+ * @return  返回网络流量信息对象
  */
 - (NetworkStatistic*)getNetworkStatisticWithCallId:(NSString*) callid;
 
-//是否抑制马赛克
+/**
+ * 是否抑制马赛克
+ * @param   falg :  YES:抑制马赛克；NO:不抑制马赛克
+ * @retutn  成功 0 失败 -1
+ */
 -(NSInteger) setShieldMosaic:(BOOL) flag;
 
 #pragma mark - 实时对讲相关函数
@@ -377,7 +397,7 @@ typedef enum
 
 /**
  * 退出当前实时对讲
- * @return false:失败 true:成功
+ * @return NO:失败 YES:成功
  */
 - (BOOL) exitInterphone;
 
@@ -423,7 +443,7 @@ typedef enum
 
 /**
  * 退出当前聊天室
- * @return false:失败 true:成功
+ * @return NO:失败 YES:成功
  */
 - (BOOL) exitChatroom;
 
@@ -462,9 +482,6 @@ typedef enum
  * @param member 成员号码
  */
 - (void) removeMemberFromChatroomWithAppId:(NSString*) appId andRoomNo:(NSString*) roomNo andMember:(NSString*) member;
-
-//设置语音SRTP加密属性
--(NSInteger) setSrtpWithKey:(NSString*) key;
 
 #pragma mark - 多媒体IM
 /**
@@ -548,7 +565,7 @@ typedef enum
 
 /**
  * 退出当前视频会议
- * @return false:失败 true:成功
+ * @return NO:失败 YES:成功
  */
 - (BOOL) exitVideoConference;
 
@@ -608,5 +625,53 @@ typedef enum
 - (void)downloadVideoConferencePortraits:(NSArray*)portraitsList;
 
 - (void) editTestNumWithOldPhoneNumber:(NSString*) oldPhoneNumber andNewPhoneNumber:(NSString*) newPhoneNumber andServerIP:(NSString*) server_IP andServerPort:(NSInteger) server_Port andServerVersion :(NSString*) serverVersion andMainAccount:(NSString*) mainAccount andMainToken:(NSString*) mainToken;
+
+#pragma mark - 多路视频 multiVideo method
+
+/**
+ * 创建多路视频
+ * @param appId 应用id
+ * @param conferenceName 会议名称
+ * @param square 参与的最大方数
+ * @param keywords 业务属性，有应用定义
+ * @param conferencePwd 房间密码，可为null
+ * @param isAutoClose 是否可以自动解散
+ * @param isPresenter 是否主持人模式
+ * @param isAutoJoin 是否创建后自动加入会议
+ */
+- (void) startMultiVideoConferenceInAppId:(NSString*)appId withName:(NSString *)conferenceName andSquare:(NSInteger)square andKeywords:(NSString *)keywords andPassword:(NSString *)conferencePwd andIsAutoClose:(BOOL)isAutoClose andIsPresenter:(BOOL)isPresenter andVoiceMod:(NSInteger)voiceMod andAutoDelete:(BOOL)autoDelete andIsAutoJoin:(BOOL) isAutoJoin;
+
+/**
+ * 设置视频会议服务器地址
+ * @param addr 视频会议服务器ip
+ * @return   成功 0 失败-1
+ */
+- (NSInteger)setVideoConferenceAddr:(NSString*)addr;
+
+/**
+ * 视频会议中请求某一远端视频
+ * @param voipAccount   请求远端用户的VoIP号.
+ * @param displayView   当成功请求时，展示该成员的窗口.
+ * @param conferenceId  所在会议号.
+ * @param conferencePwd 所在会议密码.
+ * @param port          视频源端口
+ * @return 成功 0 失败 -1(voipAccount为nil) -2(displayView为nil) -3(conferenceId为nil) -5(自己的VoIP号为nil) -6(会议服务器的ip为nil) -7(该账户的视频已经成功请求)
+ */
+- (NSInteger)requestConferenceMemberVideoWithAccount:(NSString*)voipAccount andDisplayView:(UIView*)displayView andVideoConference:(NSString*)conferenceId andPwd:(NSString*)conferencePwd andPort:(NSInteger)port;
+
+/**
+ * 视频会议中停止请求某一远端视频
+ * @param voipAccount   远端用户的VoIP号.
+ * @param conferenceId  所在会议号.
+ * @param conferencePwd 所在会议密码.
+ * @return 成功 0 失败 -1(voipAccount为nil) -2(displayView为nil)
+ */
+- (NSInteger)cancelConferenceMemberVideoWithAccount:(NSString*)voipAccount andVideoConference:(NSString*)conferenceId andPwd:(NSString*)conferencePwd;
+
+//发布视频
+-(void)publishVideoInVideoConference:(NSString*)conferenceId ofAppId:(NSString*)appId;
+
+//取消发布视频
+-(void)unpublishVideoInVideoConference:(NSString*)conferenceId ofAppId:(NSString*)appId;
 
 @end

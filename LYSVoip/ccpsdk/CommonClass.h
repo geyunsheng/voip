@@ -92,6 +92,12 @@ typedef enum
     BatteryLower
 }CCPEvents;
 
+@interface AudioConfig : NSObject
+@property(nonatomic, assign) EAudioType audioType;
+@property(nonatomic, assign) BOOL enable;
+@property(nonatomic, assign) NSInteger audioMode;
+@end
+
 //返回丢包率等通话质量信息对象
 @interface StatisticsInfo:NSObject
 @property (nonatomic,assign)   NSUInteger  rlFractionLost;    //上次调用获取统计后这一段时间的丢包率，范围是0~255，255是100%丢失。
@@ -211,6 +217,10 @@ typedef enum
 
 //获取到的聊天室成员信息
 @interface ChatroomMember : NSObject
+{
+    NSString *type;
+    NSString *number;
+}
 @property (nonatomic, retain) NSString *type;//1为创建者
 @property (nonatomic, retain) NSString *number;//VoIP账号
 @end
@@ -283,7 +293,7 @@ typedef enum
 //有成员加入
 @interface IMJoinGroupMsg : InstanceMsg
 @property (nonatomic, retain) NSString *groupId;
-@property (nonatomic, retain) NSString *proposer;
+@property (nonatomic, retain) NSString *member;
 @property (nonatomic, retain) NSString *declared;
 @property (nonatomic, retain) NSString *dateCreated;
 @end
@@ -298,6 +308,7 @@ typedef enum
 //移除成员
 @interface IMRemoveMemberMsg : InstanceMsg
 @property (nonatomic, retain) NSString *groupId;
+@property (nonatomic, retain) NSString *member;
 @end
 
 //答复申请加入
@@ -305,6 +316,15 @@ typedef enum
 @property (nonatomic, retain) NSString *groupId;
 @property (nonatomic, retain) NSString *admin;
 @property (nonatomic, retain) NSString *confirm;
+@property (nonatomic, retain) NSString *member;
+@end
+
+//答复邀请加入
+@interface IMReplyInviteGroupMsg : InstanceMsg
+@property (nonatomic, retain) NSString *groupId;
+@property (nonatomic, retain) NSString *admin;
+@property (nonatomic, retain) NSString *confirm;
+@property (nonatomic, retain) NSString *member;
 @end
 
 //合作方消息
@@ -323,6 +343,8 @@ typedef enum
 //有人加入视频会议消息类定义
 @interface VideoConferenceJoinMsg : VideoConferenceMsg
 @property (nonatomic, retain) NSArray *joinArr;
+@property (nonatomic, assign) NSInteger videoState;
+@property (nonatomic, retain) NSString *videoSrc;
 @end
 
 //有人退出视频会议消息类定义
@@ -342,11 +364,24 @@ typedef enum
 @property (nonatomic, retain) NSString *displayVoip;
 @end
 
+@interface VideoConferencePublishVideoMsg : VideoConferenceMsg
+@property (nonatomic, retain) NSString *who;
+@property (nonatomic, assign) NSInteger videoState;
+@property (nonatomic, retain) NSString *videoSrc;
+@end
+
+@interface VideoConferenceUnpublishVideoMsg : VideoConferenceMsg
+@property (nonatomic, retain) NSString *who;
+@property (nonatomic, assign) NSInteger videoState;
+@end
+
 //获取到的视频会议成员信息
 @interface VideoConferenceMember : NSObject
 @property (nonatomic, retain) NSString *type;
 @property (nonatomic, retain) NSString *number;
 @property (nonatomic, assign) NSInteger screenType;
+@property (nonatomic, assign) NSInteger videoState;
+@property (nonatomic, retain) NSString *videoSource;
 @end
 
 //视频会议信息类
@@ -358,6 +393,8 @@ typedef enum
 @property (nonatomic, retain) NSString *keywords;
 @property (nonatomic, assign) NSInteger joinNum;
 @property (nonatomic, assign) NSInteger validate;
+@property (nonatomic, assign) NSInteger isMultiVideo;
+@property (nonatomic, retain) NSString *confAttrs;
 @end
 
 //视频会议头像信息类

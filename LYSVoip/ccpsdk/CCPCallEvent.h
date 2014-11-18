@@ -24,8 +24,6 @@
 - (void)onConnected;
 //与云通讯平台连接失败或连接断开
 - (void)onConnectError:(NSInteger)reason withReasonMessge:(NSString *)reasonMessage;
-//注销成功
-- (void)onDisconnect;
 
 @optional
 /********************系统事件回调********************/
@@ -66,17 +64,16 @@
 - (void)onCallTransfered:(NSString *)callid transferTo:(NSString *)destination;
 //视频通话中对端旋转屏幕
 - (void)onMessageRemoteVideoRotate:(NSString*)degree;
-//收到对方请求的更新媒体
+//收到对方切换音视频的请求
 //request：0  请求增加视频（需要响应） 1:请求删除视频（不需要响应）
-- (void)onCallMediaUpdate:(NSString *)callid withRequest:(NSInteger)request;
+- (void)onSwitchCallMediaType:(NSString *)callid withRequest:(NSInteger)request;
 
-//对方应答请求更新媒体
-//更新后的媒体状态 0 有视频 1 无视频
-- (void)onCallMediaUpdate:(NSString *)callid withResponse:(NSInteger)response;
+//收到对方应答切换音视频请求
+//切换后的媒体状态 0 有视频 1 无视频
+- (void)onSwitchCallMediaType:(NSString *)callid withResponse:(NSInteger)response;
 
 //视频分辨率发生改变
-//resolution eg.240*320
-- (void)onCallVideoRatioChanged:(NSString *)callid withResolution:(NSString *)resolution;
+- (void)onCallVideoRatioChanged:(NSString *)callid andVoIP:(NSString *)voip andIsConfrence:(BOOL)isConference andWidth:(NSInteger)width andHeight:(NSInteger)height;
 
 //呼叫时，媒体初始化失败
 - (void)onCallMediaInitFailed:(NSString *)callid  withMediaType:(NSInteger) mediaType withReason:(NSInteger)reason;
@@ -204,13 +201,37 @@
  */
 - (void) onDownloadVideoConferencePortraitsWithReason:(CloopenReason *) reason andPortrait:(VideoPartnerPortrait*) portrait;
 
+/********************多路视频的方法********************/
+- (void)onRequestConferenceMemberVideoFailed:(CloopenReason *)reason andConferenceId:(NSString*)conferenceId andVoip:(NSString*)voip;
+- (void)onCancelConferenceMemberVideo:(CloopenReason *)reason andConferenceId:(NSString*)conferenceId andVoip:(NSString*)voip;
+//发布视频
+-(void)onPublishVideoInVideoConferenceWithReason:(CloopenReason *)reason;
+
+//取消视频发布
+-(void)onUnpublishVideoInVideoConferenceWithReason:(CloopenReason *)reason;
+
+
+//体验模式 更改测试号码
 - (void) onEditTestNumWithReason:(CloopenReason *) reason;
+/**
+ * 底层上报通话中得原始数据
+ * @param callid  会话id
+ * @param inData  底层上报的原始声音数据
+ * @param outData 加密或解密后的声音数据通过该接口返回给底层
+ * @param outLen  加密或解密后的声音数据长度
+ * @param isSend  发送或者接收数据，YES为发送，NO为接收
+ */
+- (void) onAudioDataWithCallid:(NSString*)callid andInData:(NSData*) inData andOutData:(void *)outData andOutLen:(int*)outLen andIsSend:(BOOL) isSend;
+
+/**
+ * 上报音频原始数据
+ * @param callid  会话id
+ * @param inData  底层上报的原始声音数据
+ * @param sampleRate 采样率
+ * @param numChannels Channel个数
+ * @param codec 编解码格式
+ */
+- (void) onOriginalAudioDataWithCallid:(NSString*)callid andInData:(NSData*) inData andSampleRate:(NSInteger)sampleRate andNumChannels:(NSInteger)numChannels andCodec:(NSString*)codec andIsSend:(BOOL)isSend;
 @end
-
-
-
-
-
-
 
 #endif

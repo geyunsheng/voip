@@ -23,7 +23,7 @@
 #import "AccountInfo.h"
 
 #define kServerVersion  @"2013-12-26"
-#define defHttps        @"https://"
+
 #define KEY_USERINFO_TO_PHONENUMBER        @"toPhoneNumber"
 #define KEY_USERINFO_IMGROUP_DATA        @"imGroupData"
 #define KEY_USERINFO_IMMEMBER_DATA       @"imMemberData"
@@ -31,6 +31,8 @@
 #define KEY_USERINFO_IMMEMBERID          @"imGroupMemberID"
 #define KEY_USERINFO_IMGetPublicGroups   @"GetPublicGroupsUpdateTime"
 #define KEY_RESPONSE_USERDATA   @"responseuserdatainfo"
+
+#define defHttps [self getHttpOrHttps]
 
 // 多媒体IM信息成员类
 @implementation IMMember
@@ -106,6 +108,7 @@
 @synthesize curInterphoneId;
 @synthesize chatroomListArray;
 @synthesize videoconferenceListArray;
+@synthesize multiVideoconferenceListArray;
 @synthesize accountArray;
 @synthesize serverIP;
 @synthesize serverPort;
@@ -125,6 +128,7 @@
 @synthesize developerNickName;
 @synthesize emojiCon;
 @synthesize rejectCallId;
+@synthesize cameraArr;
 
 @synthesize contactAllDic;
 @synthesize defaultContactIcon;
@@ -174,7 +178,7 @@ ModelEngineVoip* gModelEngineVoip = nil;
         [service setDelegate:self];
         self.VoipCallService = service;
         [service release];
-        
+                
         self.appIsActive = YES;
         self.registerResult = ERegisterNot;
         self.networkStatusResult = ENetworkStatus_NONE;
@@ -187,6 +191,8 @@ ModelEngineVoip* gModelEngineVoip = nil;
         self.interphoneArray = [[[NSMutableArray alloc] init] autorelease];
         self.chatroomListArray = [[[NSMutableArray alloc] init] autorelease];
         self.videoconferenceListArray = [[[NSMutableArray alloc] init] autorelease];
+        self.multiVideoconferenceListArray = [[[NSMutableArray alloc] init] autorelease];
+        
         self.accountArray = [[[NSMutableArray alloc] init] autorelease];
         self.attachDownArray = [[[NSMutableArray alloc] init] autorelease];
         self.emojiCon = [[[EmojiConvertor alloc] init] autorelease];
@@ -207,6 +213,7 @@ ModelEngineVoip* gModelEngineVoip = nil;
     self.interphoneArray = nil;
     self.chatroomListArray = nil;
     self.videoconferenceListArray = nil;
+    self.multiVideoconferenceListArray = nil;
     self.VoipCallService = nil;
     self.voipAccount = nil;
     self.serverIP = nil;
@@ -285,7 +292,10 @@ ModelEngineVoip* gModelEngineVoip = nil;
     {
         //电话直拨，使用被叫人电话号
         [theAppDelegate printLog:[NSString stringWithFormat:@"电话直拨 to %@",phone]];
-        callid = [self.VoipCallService makeCallWithType:callType andCalled:[NSString stringWithFormat:@"0086%@", phone]];
+        if ([called length] > 3 && [[called substringToIndex:3] isEqualToString:@"+86"])
+            callid = [self.VoipCallService makeCallWithType:callType andCalled:phone];
+        else
+            callid = [self.VoipCallService makeCallWithType:callType andCalled:[NSString stringWithFormat:@"0086%@", phone]];
     }
     else
     {
@@ -385,15 +395,36 @@ ModelEngineVoip* gModelEngineVoip = nil;
 {
     return [self.VoipCallService setVideoView:view andLocalView:localView];
 }
+
 //获取摄像头信息
 - (NSArray*)getCameraInfo
 {
-    return [self.VoipCallService getCameraInfo];
+    if (self.cameraArr == nil) {
+        self.cameraArr = [self.VoipCallService getCameraInfo];
+    }
+    return self.cameraArr;
 }
+
 //选取摄像头
-- (NSInteger)selectCamera:(NSInteger)cameraIndex capability:(NSInteger)capabilityIndex fps:(NSInteger)fps rotate:(Rotate)rotate
+- (NSInteger)selectCamera:(NSInteger)cameraIndex
 {
-    return [self.VoipCallService selectCamera:cameraIndex capability:capabilityIndex fps:fps rotate:rotate];
+    if (cameraIndex >= self.cameraArr.count) {
+        return -1;
+    }
+    
+    NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
+    NSInteger fps = [userDefaults integerForKey:Camera_fps_KEY];
+    if (fps == 0){
+        fps = 12;
+    }
+    
+    NSInteger capabilityIndex = [userDefaults integerForKey:Camera_Resolution_KEY];
+    CameraDeviceInfo *camera = [self.cameraArr objectAtIndex:cameraIndex];
+    if (capabilityIndex >= camera.capabilityArray.count) {
+        capabilityIndex = 0;
+    }
+    
+    return [self.VoipCallService selectCamera:cameraIndex capability:capabilityIndex fps:fps rotate:Rotate_Auto];
 }
 //设置用户名字
 - (void)setVoipUserName:(NSString *)username
@@ -489,17 +520,22 @@ ModelEngineVoip* gModelEngineVoip = nil;
         [userDefaults setInteger:-1 forKey:AUTOMANAGE_KEY];//如果没有配置过，默认配置为不开启
         [userDefaults setInteger:eAgcAdaptiveDigital forKey:AUTOMANAGE_INDEX_KEY]; //如果没有配置过，默认配置为eAgcAdaptiveDigital
         [userDefaults setInteger:1 forKey:ECHOCANCELLED_KEY];//如果没有配置过，默认配置为开启
-        [userDefaults setInteger:eEcConference forKey:ECHOCANCELLED_INDEX_KEY];    //如果没有配置过，默认配置为eEcConference
+        [userDefaults setInteger:eEcConference forKey:ECHOCANCELLED_INDEX_KEY];    //如果没有配置过，默认配置为eEcAecm
         [userDefaults setInteger:1 forKey:SILENCERESTRAIN_KEY];//如果没有配置过，默认配置为开启
         [userDefaults setInteger:eNsVeryHighSuppression forKey:SILENCERESTRAIN_INDEX_KEY];        //如果没有配置过，默认配置为eNsVeryHighSuppression
         [userDefaults setInteger:1 forKey:VIDEOSTREAM_KEY];//如果没有配置过，默认配置为开启
         [userDefaults setObject:[NSString stringWithFormat:@"%d",150] forKey:VIDEOSTREAM_CONTENT_KEY];//默认设置码流为150KB
         [userDefaults setInteger:1 forKey:VOICE_CHUNKED_SEND_KEY];
-        [userDefaults setInteger:-1 forKey:SHIELDMOSAIC_KEY];
-        [userDefaults setInteger:-1 forKey:RECORDVOICE_KEY];                        
+        [userDefaults setInteger:1 forKey:SHIELDMOSAIC_KEY];
+        [userDefaults setInteger:-1 forKey:RECORDVOICE_KEY];
         [userDefaults synchronize];
     }
    
+    NSString* silkRates = [userDefaults objectForKey:SILKSTREAM_RATE_KEY];//获取当前silk码率
+    if (silkRates.length > 0) {
+        [self.VoipCallService setSilkRate:silkRates.integerValue];
+    }
+    
     NSInteger selectedIndex = 0;
     BOOL flag = NO;
     if ([userDefaults integerForKey:AUTOMANAGE_KEY] == 1)
@@ -535,8 +571,75 @@ ModelEngineVoip* gModelEngineVoip = nil;
         [self setShieldMosaic:YES];
     else
         [self setShieldMosaic:NO];
+    
+    flag = NO;
+    if ([userDefaults integerForKey:Codec_G729_KEY] == 0)
+    {
+        flag = YES;
+    }
+    [self.VoipCallService setCodecEnabledWithCodec:Codec_G729 andEnabled:flag];
+    
+    flag = NO;
+    if ([userDefaults integerForKey:Codec_H264_KEY] == 0)
+    {
+        flag = YES;
+    }
+    [self.VoipCallService setCodecEnabledWithCodec:Codec_H264 andEnabled:flag];
+    
+    flag = NO;
+    if ([userDefaults integerForKey:Codec_iLBC_KEY] == 0)
+    {
+        flag = YES;
+    }
+    [self.VoipCallService setCodecEnabledWithCodec:Codec_iLBC andEnabled:flag];
+    
+    flag = NO;
+    if ([userDefaults integerForKey:Codec_PCMA_KEY] == 0)
+    {
+        flag = YES;
+    }
+    [self.VoipCallService setCodecEnabledWithCodec:Codec_PCMA andEnabled:flag];
+    
+    flag = NO;
+    if ([userDefaults integerForKey:Codec_PCMU_KEY] == 0)
+    {
+        flag = YES;
+    }
+    [self.VoipCallService setCodecEnabledWithCodec:Codec_PCMU andEnabled:flag];
+    
+    flag = NO;
+    if ([userDefaults integerForKey:Codec_SILK12K_KEY] == 0)
+    {
+        flag = YES;
+    }
+    [self.VoipCallService setCodecEnabledWithCodec:Codec_SILK12K andEnabled:flag];
+    
+    flag = NO;
+    if ([userDefaults integerForKey:Codec_SILK16K_KEY] == 0)
+    {
+        flag = YES;
+    }
+    [self.VoipCallService setCodecEnabledWithCodec:Codec_SILK16K andEnabled:flag];
+    
+    flag = NO;
+    if ([userDefaults integerForKey:Codec_SILK8K_KEY] == 0)
+    {
+        flag = YES;
+    }
+    [self.VoipCallService setCodecEnabledWithCodec:Codec_SILK8K andEnabled:flag];
+    
+    flag = NO;
+    if ([userDefaults integerForKey:Codec_VP8_KEY] == 0)
+    {
+        flag = YES;
+    }
+    [self.VoipCallService setCodecEnabledWithCodec:Codec_VP8 andEnabled:flag];
+    
+    if ([userDefaults integerForKey:Camera_fps_KEY] == 0)
+    {
+        [userDefaults setInteger:12 forKey:Camera_fps_KEY];
+    }
 }
-
 
 //与voip服务器平台连接失败或连接断开
 - (void)onConnectError:(NSInteger)reason withReasonMessge:(NSString *)reasonMessage
@@ -569,16 +672,6 @@ ModelEngineVoip* gModelEngineVoip = nil;
     if (self.UIDelegate && [self.UIDelegate respondsToSelector:@selector(responseVoipRegister:data:)]) 
     {
         [self.UIDelegate responseVoipRegister:ERegisterFail data:[NSString stringWithFormat:@"%d",reason]];
-    }
-}
-
-//注销
-- (void)onDisconnect
-{
-    self.registerResult = ERegisterLogout;
-    if (self.UIDelegate && [self.UIDelegate respondsToSelector:@selector(responseVoipRegister:data:)])
-    {
-        [self.UIDelegate responseVoipRegister:ERegisterLogout data:nil];
     }
 }
 
@@ -710,21 +803,6 @@ ModelEngineVoip* gModelEngineVoip = nil;
     {
         [self.UIDelegate responseVoipManagerStatus:ECallStatus_Answered callID:callid data:nil];
     }
-    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-    NSInteger flag = [defaults integerForKey:RECORDVOICE_KEY];
-    if (flag == 1)//录制音频开关是否打开
-    {
-        NSString *filename = [NSString stringWithFormat:@"%@/Library/Caches/%@.wav", NSHomeDirectory(),callid];
-        int ret = [self.VoipCallService startRecordVoiceCallWithCallid:callid andFilename:filename];
-        if (ret != 0)
-        {
-            [theAppDelegate printLog:[NSString stringWithFormat:@"startRecordVoiceCallWithCallid录音失败 callid=%@ ,ret=%d filename=%@",callid,ret,filename]];
-        }
-        else
-        {
-            [theAppDelegate printLog:[NSString stringWithFormat:@"startRecordVoiceCallWithCallid开始录音 callid=%@ ,ret=%d filename=%@",callid,ret,filename]];
-        }
-    }
 }
 
 //外呼失败
@@ -756,7 +834,6 @@ ModelEngineVoip* gModelEngineVoip = nil;
     {
         [self.UIDelegate responseVoipManagerStatus:ECallStatus_Released callID:callid data:nil];
     }
-    [self.VoipCallService stopRecordVoiceCallWithCallid:callid];
 }
 
 //本地Pause呼叫成功
@@ -819,39 +896,74 @@ ModelEngineVoip* gModelEngineVoip = nil;
     }
 }
 
-//收到对方请求的更新媒体
-//request：0  请求增加视频（需要响应用answerCallMediaUpdate处理） 1:请求删除视频（不需要响应）
-- (void)onCallMediaUpdate:(NSString *)callid withRequest:(NSInteger)request
+//收到对方请求切换音视频
+//request：0  请求增加视频（需要响应用responseSwitchCallMediaType处理） 1:请求删除视频（不需要响应）
+- (void)onSwitchCallMediaType:(NSString *)callid withRequest:(NSInteger)request
 {
-    NSLog(@"[onCallMediaUpdate:%@ withRequest:%d]",callid,request);
-    [self.VoipCallService answerCallMediaUpdate:callid withAction:1];
+    NSLog(@"[onSwitchCallMediaType:%@ withRequest:%d]",callid,request);
+    [self.VoipCallService responseSwitchCallMediaType:callid withAction:1];
     [self enableLoudsSpeaker:YES];
-    if (self.UIDelegate && [self.UIDelegate respondsToSelector:@selector(onCallMediaUpdate:withRequest:)])
+    if (self.UIDelegate && [self.UIDelegate respondsToSelector:@selector(onSwitchCallMediaType:withRequest:)])
     {
-        [self.UIDelegate onCallMediaUpdate:callid withRequest:request];
+        [self.UIDelegate onSwitchCallMediaType:callid withRequest:request];
     }
 }
 
-//对方应答请求更新媒体
-//更新后的媒体状态 0 有视频 1 无视频
-- (void)onCallMediaUpdate:(NSString *)callid withResponse:(NSInteger)response
+//对方应答切换音视频请求
+//切换后的媒体状态 0 有视频 1 无视频
+- (void)onSwitchCallMediaType:(NSString *)callid withResponse:(NSInteger)response
 {
-    NSLog(@"[onCallMediaUpdate:%@ withResponse:%d]",callid,response);
-    if (self.UIDelegate && [self.UIDelegate respondsToSelector:@selector(onCallMediaUpdate:withResponse:)])
+    NSLog(@"[onSwitchCallMediaType:%@ withResponse:%d]",callid,response);
+    if (self.UIDelegate && [self.UIDelegate respondsToSelector:@selector(onSwitchCallMediaType:withResponse:)])
     {
-        [self.UIDelegate onCallMediaUpdate:callid withResponse:response];
+        [self.UIDelegate onSwitchCallMediaType:callid withResponse:response];
     }
 }
 
 //视频分辨率发生改变
-//resolution eg.640*960
-- (void)onCallVideoRatioChanged:(NSString *)callid withResolution:(NSString *)resolution
+- (void)onCallVideoRatioChanged:(NSString *)callid andVoIP:(NSString *)voip andIsConfrence:(BOOL)isConference andWidth:(NSInteger)width andHeight:(NSInteger)height;
 {
-    NSLog(@"onCallVideoRatioChanged callid=%@ resolution=%@",callid, resolution);
-    if (self.UIDelegate && [self.UIDelegate respondsToSelector:@selector(onCallVideoRatioChanged:withResolution:)])
+    NSLog(@"onCallVideoRatioChanged callid=%@;width=%d;height=%d;voip=%@;isConference=%d", callid, width, height,voip, isConference);
+    if(self.UIDelegate && [self.UIDelegate respondsToSelector:@selector(onCallVideoRatioChanged:andVoIP:andIsConfrence:andWidth:andHeight:)])
     {
-        [self.UIDelegate onCallVideoRatioChanged:callid withResolution:resolution];
+        [self.UIDelegate onCallVideoRatioChanged:callid andVoIP:voip andIsConfrence:isConference andWidth:width andHeight:height];
     }
+}
+
+- (void) onOriginalAudioDataWithCallid:(NSString*)callid andInData:(NSData*) inData andSampleRate:(NSInteger)sampleRate andNumChannels:(NSInteger)numChannels andCodec:(NSString*)codec andIsSend:(BOOL)isSend
+{
+    NSLog(@"onOriginalAudioDataWithCallid=%@;data=%@;sampleRate=%d;numchannels=%d;codec=%@;isSend=%d;",callid, inData,sampleRate,numChannels,codec,isSend);
+    /*
+    if (isSend)
+    {
+        if (sendYesFileHandle == NULL)
+        {
+            NSArray *path = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+            NSString* doc_path = [path objectAtIndex:0];
+            NSString* _filename = [doc_path stringByAppendingPathComponent:[NSString stringWithFormat:@"SendIsYes%@.wav", callid]];
+            sendYesFileHandle =fopen([_filename UTF8String],"wb+");
+        }
+
+        if (sendYesFileHandle != NULL)
+        {
+            fwrite([inData bytes],1,[inData length],sendYesFileHandle);
+        }
+    }
+    else
+    {
+        if (sendNoFileHandle == NULL)
+        {
+            NSArray *path = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+            NSString* doc_path = [path objectAtIndex:0];
+            NSString* _filename = [doc_path stringByAppendingPathComponent:[NSString stringWithFormat:@"SendIsNo%@.wav", callid]];
+            sendNoFileHandle =fopen([_filename UTF8String],"wb+");
+        }
+        
+        if (sendNoFileHandle != NULL)
+        {
+            fwrite([inData bytes],1,[inData length],sendNoFileHandle);
+        }
+    }*/
 }
 
 // 停止当前录音
@@ -1272,11 +1384,22 @@ ModelEngineVoip* gModelEngineVoip = nil;
 - (void)onVideoConferencesWithReason:(CloopenReason *) reason andConferences:(NSArray*)conferences
 {
     [self.videoconferenceListArray removeAllObjects];
-    [self.videoconferenceListArray addObjectsFromArray:conferences];
+//    [self.videoconferenceListArray addObjectsFromArray:conferences];
+    [self.multiVideoconferenceListArray removeAllObjects];
+    for (VideoConference* room in conferences)
+    {
+        if (room.isMultiVideo == 1)
+        {
+            [self.multiVideoconferenceListArray addObject:room];
+        }
+        else
+        {
+            [self.videoconferenceListArray addObject:room];
+        }
+    }
     NSLog(@"onVideoConferencesInApp-------------VideoConferences=%@", conferences);
     if (self.UIDelegate && [self.UIDelegate respondsToSelector:@selector(onVideoConferencesWithReason:andConferences:)])
     {
-        
         [self.UIDelegate onVideoConferencesWithReason:reason andConferences:conferences];
     }
     [self displayErrorAlert:reason];
@@ -1370,6 +1493,39 @@ ModelEngineVoip* gModelEngineVoip = nil;
     {
         [self.UIDelegate onGetPortraitsFromVideoConferenceWithReason:reason andPortraitList:portraitlist];
     }
+}
+
+//发布视频
+-(void)onPublishVideoInVideoConferenceWithReason:(CloopenReason *)reason
+{
+    if (self.UIDelegate && [self.UIDelegate respondsToSelector:@selector(onPublishVideoInVideoConferenceWithReason:)])
+    {
+        [self.UIDelegate onPublishVideoInVideoConferenceWithReason:reason];
+    }
+    if (reason.reason != 0)
+        [self displayErrorAlert:reason];
+}
+
+//取消视频发布
+-(void)onUnpublishVideoInVideoConferenceWithReason:(CloopenReason *)reason
+{
+    if (self.UIDelegate && [self.UIDelegate respondsToSelector:@selector(onUnpublishVideoInVideoConferenceWithReason:)])
+    {
+        [self.UIDelegate onUnpublishVideoInVideoConferenceWithReason:reason];
+    }
+    if (reason.reason != 0)
+        [self displayErrorAlert:reason];
+}
+
+
+- (void)onRequestConferenceMemberVideoFailed:(CloopenReason*)reason andConferenceId:(NSString*)conferenceId andVoip:(NSString*)voip
+{
+    NSLog(@"\r\n////////////////onRequestConferenceMemberVideoFailed reason=%d, conif=%@, voip=%@",reason.reason,conferenceId,voip);
+}
+
+- (void)onCancelConferenceMemberVideo:(CloopenReason*)reason andConferenceId:(NSString*)conferenceId andVoip:(NSString*)voip
+{
+    NSLog(@"\r\n/////////////////onCancelConferenceMemberVideo reason=%d, conif=%@, voip=%@",reason.reason,conferenceId,voip);
 }
 
 -(void)delayCall:(NSTimer*)theTimer
@@ -1479,6 +1635,8 @@ ModelEngineVoip* gModelEngineVoip = nil;
 //通知客户端收到新的IM信息
 - (void)onReceiveInstanceMessage:(InstanceMsg*) msg
 {
+    NSLog(@"onReceiveInstanceMessage %@", msg);
+    
     if ([msg isKindOfClass:[IMTextMsg class]])
     {
         IMTextMsg *textmsg = (IMTextMsg*)msg;
@@ -1646,6 +1804,15 @@ ModelEngineVoip* gModelEngineVoip = nil;
             [self.UIDelegate responseIMGroupNotice:instanceMsg.groupId data:@"申请加入群组消息回复"];
         }
     }
+    else if([msg isKindOfClass:[IMReplyInviteGroupMsg class]])
+    {
+        IMReplyInviteGroupMsg *instanceMsg = (IMReplyInviteGroupMsg*)msg;
+        [imDBAccess insertNoticeMessage:msg withType:EGroupNoticeType_ReplyInvite];
+        if (self.UIDelegate && [self.UIDelegate respondsToSelector:@selector(responseIMGroupNotice:data:)])
+        {
+            [self.UIDelegate responseIMGroupNotice:instanceMsg.groupId data:@"邀请加入群组消息回复"];
+        }
+    }
     else if([msg isKindOfClass:[IMJoinGroupMsg class]])
     {
         IMJoinGroupMsg *instanceMsg = (IMJoinGroupMsg*)msg;
@@ -1801,6 +1968,17 @@ ModelEngineVoip* gModelEngineVoip = nil;
     [self displayErrorAlert:reason];
 }
 
+-(NSString*)getHttpOrHttps
+{
+    if ([self.serverIP hasPrefix:@"http"])
+    {
+        return @"";
+    }
+    else
+    {
+        return @"https://";
+    }
+}
 
 #pragma mark - 发起外呼通知
 //phoneNumber    必选    待拨打号码
@@ -2027,81 +2205,79 @@ ModelEngineVoip* gModelEngineVoip = nil;
             [self.UIDelegate onLoceExpertWithReason:reason];
         }
     }
-    /*
-    else if (request.requestType == ERequestType_GetDemoAccounts)
-    {
-        [self parseGetDemoAccounts:element withData:data];
-        if (self.UIDelegate && [self.UIDelegate respondsToSelector:@selector(onGetDemoAccountsWithReason:)])
-        {
-            if (reason.reason == 0)
-            {
-                if (!self.accountArray)
-                {
-                    self.accountArray = [[NSMutableArray alloc] init];
-                    
-                }
-                else
-                    [self.accountArray removeAllObjects];
-                NSDictionary* myDict = [data objectForKey:KEY_RESPONSE_USERDATA];
-                NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
-                [userDefaults setObject:__BASE64(self.developerUserName) forKey:@"developerUserName"];
-                [userDefaults setObject:__BASE64(self.developerUserPasswd) forKey:@"developerUserPasswd"];
-                [userDefaults synchronize];
-                self.mainAccount = [myDict objectForKey:@"main_account"];
-                self.mainToken = [myDict objectForKey:@"main_token"];
-                self.developerNickName = [myDict objectForKey:@"nick_name"];
-                self.registeredPhone = [myDict objectForKey:@"mobile"];
-                self.test_numberArray = [NSMutableArray arrayWithArray:[[myDict objectForKey:@"test_number"] componentsSeparatedByString:@","]];
-                NSArray* applications = [myDict objectForKey:@"Applications"];
-                if ([applications count] > 0)
-                {
-                    NSDictionary *applicationDict =  [applications objectAtIndex:0];
-                    {
-                        self.appID = [applicationDict objectForKey:@"appId"];
-                        self.appName = [applicationDict objectForKey:@"appName"];
-                        NSArray* accountsArray = [applicationDict objectForKey:@"SubAccounts"];
-                        NSMutableArray* tmpAccountArray = [[NSMutableArray alloc] init];
-                        for (NSDictionary *subaccountInfo in accountsArray)
-                        {
-                            AccountInfo *info = [[AccountInfo alloc] init];
-                            info.subAccount = [subaccountInfo objectForKey:@"sub_account"];
-                            info.subToken = [subaccountInfo objectForKey:@"sub_token"];
-                            info.voipId = [subaccountInfo objectForKey:@"voip_account"];
-                            info.password = [subaccountInfo objectForKey:@"voip_token"];
-                            [tmpAccountArray addObject:info];
-                            [info release];
-                        }
-                        
-                        NSComparator cmptr = ^(id obj1, id obj2)
-                        {
-                            AccountInfo *account1 = (AccountInfo *)obj1;
-                            AccountInfo *account2 = (AccountInfo *)obj2;
-                            
-                            if ([account1.voipId longLongValue] > [account2.voipId longLongValue])
-                            {
-                                return (NSComparisonResult)NSOrderedDescending;
-                            }
-                            if ([account1.voipId longLongValue] < [account2.voipId longLongValue])
-                            {
-                                return (NSComparisonResult)NSOrderedAscending;  
-                            }  
-                            return (NSComparisonResult)NSOrderedSame;  
-                        };
-                        [self.accountArray addObjectsFromArray:[tmpAccountArray sortedArrayUsingComparator:cmptr]];
-                        [tmpAccountArray release];
-                    }
-                }
-                else
-                {
-                    reason.reason = 170090;
-                    reason.msg = @"获取账号信息失败，没有找到Applications节点";
-                    NSLog(@"获取账号信息失败，没有找到Applications节点");
-                }
-            }
-            [self.UIDelegate onGetDemoAccountsWithReason:reason];
-        }
-    }
-     */
+//    else if (request.requestType == ERequestType_GetDemoAccounts)
+//    {
+//        [self parseGetDemoAccounts:element withData:data];
+//        if (self.UIDelegate && [self.UIDelegate respondsToSelector:@selector(onGetDemoAccountsWithReason:)])
+//        {
+//            if (reason.reason == 0)
+//            {
+//                if (!self.accountArray)
+//                {
+//                    self.accountArray = [[NSMutableArray alloc] init];
+//                    
+//                }
+//                else
+//                    [self.accountArray removeAllObjects];
+//                NSDictionary* myDict = [data objectForKey:KEY_RESPONSE_USERDATA];
+//                NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
+//                [userDefaults setObject:__BASE64(self.developerUserName) forKey:@"developerUserName"];
+//                [userDefaults setObject:__BASE64(self.developerUserPasswd) forKey:@"developerUserPasswd"];
+//                [userDefaults synchronize];
+//                self.mainAccount = [myDict objectForKey:@"main_account"];
+//                self.mainToken = [myDict objectForKey:@"main_token"];
+//                self.developerNickName = [myDict objectForKey:@"nick_name"];
+//                self.registeredPhone = [myDict objectForKey:@"mobile"];
+//                self.test_numberArray = [NSMutableArray arrayWithArray:[[myDict objectForKey:@"test_number"] componentsSeparatedByString:@","]];
+//                NSArray* applications = [myDict objectForKey:@"Applications"];
+//                if ([applications count] > 0)
+//                {
+//                    NSDictionary *applicationDict =  [applications objectAtIndex:0];
+//                    {
+//                        self.appID = [applicationDict objectForKey:@"appId"];
+//                        self.appName = [applicationDict objectForKey:@"appName"];
+//                        NSArray* accountsArray = [applicationDict objectForKey:@"SubAccounts"];
+//                        NSMutableArray* tmpAccountArray = [[NSMutableArray alloc] init];
+//                        for (NSDictionary *subaccountInfo in accountsArray)
+//                        {
+//                            AccountInfo *info = [[AccountInfo alloc] init];
+//                            info.subAccount = [subaccountInfo objectForKey:@"sub_account"];
+//                            info.subToken = [subaccountInfo objectForKey:@"sub_token"];
+//                            info.voipId = [subaccountInfo objectForKey:@"voip_account"];
+//                            info.password = [subaccountInfo objectForKey:@"voip_token"];
+//                            [tmpAccountArray addObject:info];
+//                            [info release];
+//                        }
+//                        
+//                        NSComparator cmptr = ^(id obj1, id obj2)
+//                        {
+//                            AccountInfo *account1 = (AccountInfo *)obj1;
+//                            AccountInfo *account2 = (AccountInfo *)obj2;
+//                            
+//                            if ([account1.voipId longLongValue] > [account2.voipId longLongValue])
+//                            {
+//                                return (NSComparisonResult)NSOrderedDescending;
+//                            }
+//                            if ([account1.voipId longLongValue] < [account2.voipId longLongValue])
+//                            {
+//                                return (NSComparisonResult)NSOrderedAscending;  
+//                            }
+//                            return (NSComparisonResult)NSOrderedSame;  
+//                        };
+//                        [self.accountArray addObjectsFromArray:[tmpAccountArray sortedArrayUsingComparator:cmptr]];
+//                        [tmpAccountArray release];
+//                    }
+//                }
+//                else
+//                {
+//                    reason.reason = 170090;
+//                    reason.msg = @"获取账号信息失败，没有找到Applications节点";
+//                    NSLog(@"获取账号信息失败，没有找到Applications节点");
+//                }
+//            }
+//            [self.UIDelegate onGetDemoAccountsWithReason:reason];
+//        }
+//    }
 }
 
 #pragma mark - ASIHTTPRequestDelegate
@@ -3421,25 +3597,25 @@ ModelEngineVoip* gModelEngineVoip = nil;
     }
     [self displayErrorAlert:reason];
 }
-/*
+
 - (void) getDemoAccountsWithUserName:(NSString*) userName andUserPwd:(NSString*)userPwd
 {
     NSString *timestamp = [self getTimestamp];
     NSString *requestUrl = [NSString stringWithFormat:@"%@%@:%d/%@/General/GetDemoAccounts", defHttps, self.serverIP,self.serverPort,kServerVersion];
     ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:[NSURL URLWithString:requestUrl]];
-    request.requestType = ERequestType_GetDemoAccounts;
+ //   request.requestType = ERequestType_GetDemoAccounts;
     [request setRequestMethod:@"POST"];
     [request addRequestHeader:@"Accept" value:@"application/xml"];
     [request addRequestHeader:@"Content-Type" value:@"application/xml;charset=utf-8"];
     [request addRequestHeader:@"Authorization" value:[self getAuthorization:timestamp]];
-    NSString *xmlBody = xmlBody = [NSString stringWithFormat:@"<?xml version='1.0' encoding='UTF8'?><Request><user_name>%@</user_name><user_pwd>%@</user_pwd></Request>",userName,userPwd];
+    NSString *xmlBody = [NSString stringWithFormat:@"<?xml version='1.0' encoding='UTF8'?><Request><user_name>%@</user_name><user_pwd>%@</user_pwd></Request>",userName,userPwd];
     NSString *crpyStr = __BASE64(xmlBody);
     [request appendPostData:[crpyStr dataUsingEncoding:NSUTF8StringEncoding]];
     [request setDelegate:self];
     [request setValidatesSecureCertificate:NO];
     [request startAsynchronous];
 }
-*/
+
 - (void)parseGetDemoAccounts:(Demo_GDataXMLElement*)rootElement withData:(NSMutableDictionary*)userData
 {
     NSMutableDictionary* AccountInfo = [[NSMutableDictionary alloc] init];

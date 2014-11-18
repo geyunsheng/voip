@@ -21,10 +21,24 @@
 #import "EmojiConvertor.h"
 #import "AddressBookContactList.h"
 #define VIDEOSTREAM_CONTENT_KEY         @"ContentOfVideoStream"
+#define SILKSTREAM_RATE_KEY             @"RateOfSilkStream"
 #define AUTOMANAGE_KEY                  @"AutoManage"
 #define ECHOCANCELLED_KEY               @"EchoCancelled"
 #define SILENCERESTRAIN_KEY             @"SilenceRestrain"
 #define VIDEOSTREAM_KEY                 @"VideoStream"
+
+#define Codec_iLBC_KEY                  @"Codec_iLBC"
+#define Codec_G729_KEY                  @"Codec_G729"
+#define Codec_PCMU_KEY                  @"Codec_PCMU"
+#define Codec_PCMA_KEY                  @"Codec_PCMA"
+#define Codec_VP8_KEY                   @"Codec_VP8"
+#define Codec_H264_KEY                  @"Codec_H264"
+#define Codec_SILK8K_KEY                @"Codec_SILK8K"
+#define Codec_SILK12K_KEY               @"Codec_SILK12K"
+#define Codec_SILK16K_KEY               @"Codec_SILK16"
+
+#define Camera_Resolution_KEY           @"camera_Resolution_key"
+#define Camera_fps_KEY                  @"camera_fps_key"
 
 #define VOICE_CHUNKED_SEND_KEY          @"VoiceChunkedSendKey"
 #define SHIELDMOSAIC_KEY                @"ShieldMosaicKEY"
@@ -37,6 +51,8 @@
 #define ECHOCANCELLED_CONTENT_KEY   @"ContentOfEchoCancelled"
 #define SILENCERESTRAIN_INDEX_KEY   @"IndexOfSilenceRestrain"
 #define SILENCERESTRAIN_CONTENT_KEY @"ContentOfSilenceRestrain"
+
+
 typedef enum {
     ERequestType_NetError = 170005,
     ERequestType_XmlError = 170004
@@ -116,17 +132,16 @@ typedef enum {
 
 /********************视频通话的方法********************/
 - (void)onMessageRemoteVideoRotate:(NSString*)degree;
-//收到对方请求的更新媒体
+//收到对方请求切换音视频
 //request：0  请求增加视频（需要响应） 1:请求删除视频（不需要响应）
-- (void)onCallMediaUpdate:(NSString *)callid withRequest:(NSInteger)request;
+- (void)onSwitchCallMediaType:(NSString *)callid withRequest:(NSInteger)request;
 
-//对方应答请求更新媒体
-//更新后的媒体状态 0 有视频 1 无视频
-- (void)onCallMediaUpdate:(NSString *)callid withResponse:(NSInteger)response;
+//对方应答切换音视频请求
+//切换后的媒体状态 0 有视频 1 无视频
+- (void)onSwitchCallMediaType:(NSString *)callid withResponse:(NSInteger)response;
 
 //视频分辨率发生改变
-//resolution eg.640*960
-- (void)onCallVideoRatioChanged:(NSString *)callid withResolution:(NSString *)resolution;
+- (void)onCallVideoRatioChanged:(NSString *)callid andVoIP:(NSString *)voip andIsConfrence:(BOOL)isConference andWidth:(NSInteger)width andHeight:(NSInteger)height;
 
 /********************聊天室的方法********************/
 
@@ -250,7 +265,7 @@ typedef enum {
 //通知客户端收到新的聊天室信息
 - (void)onReceiveVideoConferenceMsg:(VideoConferenceMsg*) msg;
 
-//聊天室状态
+//视频会议状态
 - (void)onVideoConferenceStateWithReason:(CloopenReason *) reason andConferenceId:(NSString*)conferenceId;
 
 //获取聊天室的成员
@@ -302,11 +317,17 @@ typedef enum {
  */
 - (void) onDownloadVideoConferencePortraitsWithReason:(CloopenReason *) reason andPortrait:(VideoPartnerPortrait*) portrait;
 
+//发布视频
+-(void)onPublishVideoInVideoConferenceWithReason:(CloopenReason *)reason;
+
+//取消视频发布
+-(void)onUnpublishVideoInVideoConferenceWithReason:(CloopenReason *)reason;
+
 /**
  * 获取账号
  * @param reason 状态值 0:成功
  */
-//- (void)onGetDemoAccountsWithReason:(CloopenReason *)reason;
+- (void)onGetDemoAccountsWithReason:(CloopenReason *)reason;
 /**
  * 获取本地视频
  * @param portraitPath 成员头像路径
@@ -329,6 +350,8 @@ typedef enum {
     NSMutableDictionary *contactAllDic;
     BOOL contactsChange;//通讯录是否改变
     BOOL isKickedOff;
+    FILE * sendYesFileHandle;
+    FILE * sendNoFileHandle;
 }
 
 @property (nonatomic, assign)id<ModelEngineUIDelegate> UIDelegate;
@@ -364,6 +387,8 @@ typedef enum {
 
 @property (nonatomic, retain)NSMutableArray *videoconferenceListArray;
 
+@property (nonatomic, retain)NSMutableArray *multiVideoconferenceListArray;
+
 @property (nonatomic, retain)NSMutableArray *attachDownArray;
 
 @property (nonatomic, retain)NSMutableArray *test_numberArray;
@@ -376,6 +401,7 @@ typedef enum {
 @property (nonatomic, retain)NSString* myVoipPhone;
 @property (nonatomic, retain)EmojiConvertor *emojiCon;
 @property (nonatomic, retain)NSString *rejectCallId;
+@property (nonatomic, retain)NSArray* cameraArr;
 
 //通讯录
 @property (nonatomic,retain)  AddressBookContactList *addressBookContactList;
@@ -453,7 +479,7 @@ typedef enum {
 //获取摄像头信息
 - (NSArray*)getCameraInfo;
 //选取摄像头
-- (NSInteger)selectCamera:(NSInteger)cameraIndex capability:(NSInteger)capabilityIndex fps:(NSInteger)fps rotate:(Rotate)rotate;
+- (NSInteger)selectCamera:(NSInteger)cameraIndex;
 //设置用户手机号
 - (void)setVoipUserPhone:(NSString *)phone;
 //延时呼叫，处理多路打来排队进入
@@ -789,13 +815,16 @@ typedef enum {
  * @param userName 网站用户名
  * @param userPwd  网站用户密码
  */
-//- (void) getDemoAccountsWithUserName:(NSString*) userName andUserPwd:(NSString*)userPwd;
+- (void) getDemoAccountsWithUserName:(NSString*) userName andUserPwd:(NSString*)userPwd;
 /**
  * 视频通话中截取对端的图像
  * @param  callid 会话id
  * @return 无
  */
 - (NSInteger)getRemoteVideoSnapshotWithCallid:(NSString*)callid;
+
+#pragma mark - 多路视频 multiVideo method
+
 
 //退出客户体验模式，将内置的账号清除掉
 -(void)logoutDemoExperience;

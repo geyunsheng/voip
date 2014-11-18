@@ -92,7 +92,8 @@ typedef enum{
     EGroupNoticeType_RemoveMember,
     EGroupNoticeType_QuitGroup,
     EGroupNoticeType_DismissGroup,
-    EGroupNoticeType_JoinedGroup
+    EGroupNoticeType_JoinedGroup,
+    EGroupNoticeType_ReplyInvite
 }EGroupNoticeType;
 
 typedef enum{

@@ -323,9 +323,11 @@
             }else if(noticeType == EGroupNoticeType_QuitGroup){
                 msg.content = @"有人退出群组";
             }else if(noticeType == EGroupNoticeType_RemoveMember){
-                msg.content = @"您被一个群组踢出";
+                msg.content = @"有人被群主踢出";
             }else if(noticeType == EGroupNoticeType_ReplyJoin){
                 msg.content = @"有申请加入群组的回复";
+            }else if(noticeType == EGroupNoticeType_ReplyInvite){
+                msg.content = @"有邀请加入群组的回复";
             }
             
             msg.type = EConverType_Notice;
@@ -701,7 +703,6 @@
         
         who = instanceMsg.admin;
         verifyMsg = instanceMsg.declared;
-//        NSInteger confirm = [instanceMsg.confirm integerValue];
         if ([instanceMsg.confirm isEqualToString:@"0"])
         {
             state = EGroupNoticeOperation_NeedAuth;
@@ -712,7 +713,7 @@
         IMJoinGroupMsg *instanceMsg = (IMJoinGroupMsg*)msg;
         groupId = instanceMsg.groupId;
         verifyMsg = instanceMsg.declared;
-        who = instanceMsg.proposer;
+        who = instanceMsg.member;
     }
     else if (EGroupNoticeType_QuitGroup == type)
     {
@@ -725,7 +726,8 @@
     {
         IMRemoveMemberMsg *instanceMsg = (IMRemoveMemberMsg*)msg;
         groupId = instanceMsg.groupId;
-        verifyMsg = @"你被管理员移除群组";
+        who = instanceMsg.member;
+        verifyMsg = @"被管理员移除群组";
     }
     else if (EGroupNoticeType_ReplyJoin == type)
     {
@@ -734,15 +736,35 @@
         
         if ([instanceMsg.confirm isEqualToString:@"0"])
         {
-            verifyMsg = @"通过你加入群组";
+            who = instanceMsg.member;
+            verifyMsg = @"通过管理员的同意加入群组";
             state = EGroupNoticeOperation_Access;
         }
         else
         {
             verifyMsg = @"拒绝你加入群组";
             state = EGroupNoticeOperation_Reject;
+            who = instanceMsg.admin;
         }
-        who = instanceMsg.admin;
+        
+    }
+    else if (EGroupNoticeType_ReplyInvite == type)
+    {
+        IMReplyInviteGroupMsg *instanceMsg = (IMReplyInviteGroupMsg*)msg;
+        groupId = instanceMsg.groupId;
+        
+        if ([instanceMsg.confirm isEqualToString:@"0"])
+        {
+            who = instanceMsg.member;
+            verifyMsg = @"通过管理员的邀请加入群组";
+            state = EGroupNoticeOperation_Access;
+        }
+        else
+        {
+            who = instanceMsg.admin;
+            verifyMsg = @"拒绝你的邀请加入群组";
+            state = EGroupNoticeOperation_Reject;
+        }
     }
     
     IMGroupNotice *groupNotice = [[IMGroupNotice alloc] init];
